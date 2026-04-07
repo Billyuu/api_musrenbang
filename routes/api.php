@@ -10,7 +10,8 @@ Route::post('/login', [AuthController::class, 'login']);
 // 🔥 UPDATE TERPISAH
 Route::post('/update-alamat', [UserController::class, 'updateAlamat']);
 Route::post('/update-nohp', [UserController::class, 'updateNoHp']);
-Route::post('/updateFoto', [UserController::class, 'updateFoto']);
+Route::get('/profile', [UserController::class, 'getProfile']);
+Route::post('/update-foto', [UserController::class, 'updateFoto']);
 
 // CORS
 Route::options('{any}', function () {

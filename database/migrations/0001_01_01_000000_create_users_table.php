@@ -18,6 +18,7 @@ return new class extends Migration
             $table->text('alamat');
             $table->enum('jenis_kelamin', ['L', 'P']);
             $table->string('nomor_telepon');
+            $table->string('foto')->nullable();
             $table->string('password');
             $table->timestamps();
         });
