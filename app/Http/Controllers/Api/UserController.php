@@ -5,19 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    // 🔥 UPDATE ALAMAT
+    // UPDATE ALAMAT
     public function updateAlamat(Request $request)
     {
-        $user = User::first(); // sementara
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'alamat' => 'required|string'
+        ]);
 
-        if (!$user) {
-            return response()->json([
-                'message' => 'User tidak ditemukan'
-            ], 404);
-        }
+        $user = User::find($request->user_id);
 
         $user->alamat = $request->alamat;
         $user->save();
@@ -27,17 +27,15 @@ class UserController extends Controller
             'data' => $user
         ]);
     }
-
-    // 🔥 UPDATE NO HP
+    // UPDATE NO HP
     public function updateNoHp(Request $request)
     {
-        $user = User::first(); // sementara
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'nomor_telepon' => 'required|string|max:15'
+        ]);
 
-        if (!$user) {
-            return response()->json([
-                'message' => 'User tidak ditemukan'
-            ], 404);
-        }
+        $user = User::find($request->user_id);
 
         $user->nomor_telepon = $request->nomor_telepon;
         $user->save();
@@ -47,12 +45,39 @@ class UserController extends Controller
             'data' => $user
         ]);
     }
-    //uploud foto
-    public function getProfile()
+    //get profile
+    public function getProfile(Request $request)
     {
-        $user = User::first(); // sementara
+        $user = User::find($request->user_id);
 
-        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'User tidak ditemukan'
+            ], 404);
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'id' => $user->id,
+                'nama' => $user->nama,
+                'email' => $user->email,
+                'nik' => $user->nik,
+                'alamat' => $user->alamat,
+                'nomor_telepon' => $user->nomor_telepon,
+                'jenis_kelamin' => $user->jenis_kelamin,
+                'foto_url' => $user->foto
+                    ? asset('storage/' . $user->foto)
+                    : null,
+            ]
+        ]);
+    }
+
+    // UPDATE FOTO PROFILE
+    public function updateFoto(Request $request)
+    {
+        $user = User::find($request->user_id);
 
         if (!$user) {
             return response()->json([
@@ -60,43 +85,43 @@ class UserController extends Controller
             ], 404);
         }
 
-        return response()->json([
-            'data' => [
-                'nama' => $user->name,
-                'foto_url' => $user->foto
-                    ? asset('storage/' . $user->foto)
-                    : null,
-            ]
-            
-
+        // VALIDASI
+        $request->validate([
+            'user_id' => 'required|exists:users,id',
+            'foto' => 'required|image|mimes:jpeg,png,jpg|max:2048',
         ]);
-        
-    }
 
-    // 🔥 UPDATE FOTO PROFILE
-    public function updateFoto(Request $request)
-    {
-        $user = User::first(); // sementara, nanti pakai auth
+        if ($request->hasFile('foto')) {
 
-        if (!$user) {
-            return response()->json(['message' => 'User tidak ditemukan'], 404);
+            // 🔥 HAPUS FOTO LAMA
+            if (
+                $user->foto &&
+                Storage::disk('public')->exists($user->foto)
+            ) {
+                Storage::disk('public')->delete($user->foto);
+            }
+
+            // 🔥 SIMPAN FOTO BARU
+            $file = $request->file('foto');
+
+            $path = $file->store('profile', 'public');
+
+            // 🔥 UPDATE DATABASE
+            $user->foto = $path;
+            $user->save();
+
+            return response()->json([
+                'message' => 'Foto profile berhasil diupdate',
+                'user_id' => $user->id,
+                'foto_database' => $user->foto,
+                'data' => [
+                    'foto_url' => asset('storage/' . $path)
+                ]
+            ]);
         }
 
-        if (!$request->hasFile('foto')) {
-            return response()->json(['message' => 'Tidak ada file yang diupload'], 400);
-        }
-
-        $file = $request->file('foto');
-        $path = $file->store('profile', 'public');
-
-        $user->foto = $path;
-        $user->save();
-
         return response()->json([
-            'message' => 'Foto profile berhasil diupdate',
-            'data' => [
-                'foto_url' => asset('storage/' . $path)
-            ]
-        ]);
+            'message' => 'File tidak ditemukan'
+        ], 400);
     }
 }

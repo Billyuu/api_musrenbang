@@ -86,11 +86,22 @@ class UsulanController extends Controller
     {
         $data = Usulan::where('user_id', $user_id)
             ->orderBy('created_at', 'desc')
-            ->get();
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'id' => $item->id,
+                    'judul_usulan' => $item->judul_usulan,
+                    'lokasi_detail' => $item->lokasi_detail,
+                    'status' => $item->status,
+
+                    // 🔥 INI YANG KAMU BUTUHKAN
+                    'tanggal' => optional($item->created_at)->format('d-m-Y'),
+                ];
+            });
 
         return response()->json([
             'status' => 'success',
-            'data'   => $data
+            'data' => $data
         ], 200);
     }
 }

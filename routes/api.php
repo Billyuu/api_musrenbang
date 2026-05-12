@@ -3,15 +3,16 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\UserController;
-use App\Http\Controllers\Api\UsulanController; // 🔥 Import controller baru
+use App\Http\Controllers\Api\UsulanController; 
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
 
 //UPDATE TERPISAH
+Route::post('/login-firebase', [AuthController::class, 'loginFirebase']);
 Route::post('/update-alamat', [UserController::class, 'updateAlamat']);
 Route::post('/update-nohp', [UserController::class, 'updateNoHp']);
-Route::get('/profile', [UserController::class, 'getProfile']);
+Route::post('/profile', [UserController::class, 'getProfile']);
 Route::post('/update-foto', [UserController::class, 'updateFoto']);
 
 //ROUTE KHUSUS USULAN MUSRENBANG
